@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:kisanseva/keys.dart';
 import 'package:kisanseva/other.dart';
 import 'package:kisanseva/screen/advisory.dart';
 import 'package:kisanseva/screen/loginPage.dart';
@@ -139,7 +140,7 @@ class _DashboardState extends State<Dashboard> {
     }
 
     final response = await http.get(
-      Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat='+lat.toString()+'&lon='+lon.toString()+'&units=Metric&appid=1b1608405644fff2e9346058b2422184'),
+      Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat='+lat.toString()+'&lon='+lon.toString()+'&units=Metric&appid='+weather_key),
     );
 
     if (response.statusCode == 200) {

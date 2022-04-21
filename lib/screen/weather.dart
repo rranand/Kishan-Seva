@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:kisanseva/keys.dart';
+
 
 class Weather extends StatefulWidget {
   final double lat;
@@ -29,7 +31,7 @@ class _WeatherState extends State<Weather> {
   _init() async {
 
     final response = await http.get(
-      Uri.parse('http://api.openweathermap.org/data/2.5/forecast?id=524901&lat='+widget.lat.toString()+'&lon='+widget.lon.toString()+'&units=Metric&appid=1b1608405644fff2e9346058b2422184&cnt=7'),
+      Uri.parse('http://api.openweathermap.org/data/2.5/forecast?id=524901&lat='+widget.lat.toString()+'&lon='+widget.lon.toString()+'&units=Metric&appid='+weather_key+'&cnt=7'),
     );
 
     if (response.statusCode == 200) {
