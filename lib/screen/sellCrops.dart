@@ -47,8 +47,9 @@ class _SellCropsState extends State<SellCrops> {
     }).toList();
 
     for(int i=0; i<temp.length; i++) {
-      String cropName = "NA", state = "NA", quantity = "NA", price = "NA", sold = "NA";
+      String cropName = "NA", state = "NA", quantity = "NA", price = "NA", sold = "NA", key = "NA";
         final element = temp[i];
+        key = element.key.toString();
         element.children.forEach((element) {
           if ("cropName" == element.key) {
             cropName = element.value.toString();
@@ -60,6 +61,7 @@ class _SellCropsState extends State<SellCrops> {
             sold = element.value.toString();
           } else if ("state" == element.key) {
             state = element.value.toString();
+          } else {
           }
         },);
 
@@ -68,7 +70,8 @@ class _SellCropsState extends State<SellCrops> {
           "quantity": quantity,
           "price": price,
           "sold": sold,
-          "state": state
+          "state": state,
+          "key": key
         });
     }
     
@@ -247,6 +250,66 @@ class _SellCropsState extends State<SellCrops> {
     );
   }
 
+  deleteCrop(String key) async {
+    await FirebaseDatabase.instance.ref("SellCrops").child(key).remove();
+    await init();
+    _showToast(context, "Crop Deleted Successfully");
+  }
+
+  deleteCropWidget(BuildContext context, String key) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), 
+      child: SingleChildScrollView(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Are You Sure?",
+                  style: TextStyle(
+                    fontSize: 25
+                  ),
+                ),
+                SizedBox(height: 20,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("No"),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: ElevatedButton(
+                        onPressed: () async{
+                          buildShowDialog(context);
+                          await deleteCrop(key);
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                        child: Text("Yes"),
+                      ),
+                    )
+                  ],
+                )
+              ],
+            ),
+          )
+        )
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     int cnt = 0;
@@ -287,18 +350,38 @@ class _SellCropsState extends State<SellCrops> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(arr[index]["cropName"], 
-                        style: TextStyle(
-                          fontSize: 24
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(arr[index]["cropName"], 
+                                style: TextStyle(
+                                  fontSize: 24
+                                ),
+                              ),
+                              SizedBox(height: 5,),
+                              Text("Quantity: " + arr[index]["quantity"] + " KG", 
+                                style: TextStyle(
+                                  fontSize: 20
+                                ),
+                              ),
+                              SizedBox(height: 5,),
+                            ],
+                          ),
+                          IconButton(
+                            onPressed: () async {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => deleteCropWidget(context, arr[index]["key"]),
+                              );
+                            }, 
+                            icon: Icon(Icons.delete)
+                          )
+                        ],
                       ),
-                      SizedBox(height: 5,),
-                      Text("Quantity: " + arr[index]["quantity"] + " KG", 
-                        style: TextStyle(
-                          fontSize: 20
-                        ),
-                      ),
-                      SizedBox(height: 5,),
                       Text("Price: ₹ " + arr[index]["price"] + "/KG", 
                         style: TextStyle(
                           fontSize: 20

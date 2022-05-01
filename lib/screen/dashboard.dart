@@ -27,6 +27,9 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  final TextEditingController _message = TextEditingController();
+  final TextEditingController _subject = TextEditingController();
+  final DatabaseReference ref = FirebaseDatabase.instance.ref("ContactUs");
   int dash = 0;
   int languageIndex = 0;
   bool serviceEnabled = false;
@@ -49,6 +52,9 @@ class _DashboardState extends State<Dashboard> {
   String nearbyMarket = "Nearby Market";
   String farmingVideo = "Farming Video";
   String advisory = "Advisory";
+  String contact = "Contact Us";
+  String enterMessage = "Enter Your Message";
+  String enterSubject = "Enter Your Subject";
   String city = "";
   String country = "";
   String weatherType = "";
@@ -64,6 +70,9 @@ class _DashboardState extends State<Dashboard> {
     nearbyMarket = await translateLang(nearbyMarket, prevLang, newLang);
     farmingVideo = await translateLang(farmingVideo, prevLang, newLang);
     advisory = await translateLang(advisory, prevLang, newLang);
+    contact = await translateLang(contact, prevLang, newLang);
+    enterMessage = await translateLang(enterMessage, prevLang, newLang);
+    enterSubject = await translateLang(enterSubject, prevLang, newLang);
     if (weatherData != null) {
       city = await translateLang(city, prevLang, newLang);
       country = await translateLang(country, prevLang, newLang);
@@ -165,6 +174,25 @@ class _DashboardState extends State<Dashboard> {
     return res.toString();
   }
 
+  submitContactMessage() async {
+    try {
+      final newChild = ref.push();
+
+      await FirebaseDatabase.instance.ref("ContactUs/"+newChild.key.toString()).set({
+        "userID": widget.userId,
+        "subject": _subject.text,
+        "message": _message.text,
+      });
+
+      _subject.text = "";
+      _message.text = "";
+      
+      _showToast(context, "Message Send Successfully");
+    } catch(e) {
+      _showToast(context, "Some Unknown Error Occurred");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -184,7 +212,7 @@ class _DashboardState extends State<Dashboard> {
         color: Colors.grey.shade200,
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
-        child: dash==0?homeWidget(context):profileWidget(context),
+        child: dash==0?homeWidget(context):(dash==1?profileWidget(context):contactWidget(context)),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -202,9 +230,84 @@ class _DashboardState extends State<Dashboard> {
             icon: Icon(Icons.person_outline, size: 25,),
             label: profile,
             backgroundColor: Colors.green
-          )
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.contact_page_outlined, size: 25,),
+            label: contact,
+            backgroundColor: Colors.green
+          ),
         ],
       )
+    );
+  }
+
+  Widget contactWidget(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(contact, style: TextStyle(
+              fontSize: 30,
+            ),),
+            SizedBox(height: 20,),
+            TextField(
+              controller: _subject,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.search,
+              maxLines: 1,
+              decoration: InputDecoration(
+                hoverColor: Colors.white,
+                contentPadding: EdgeInsets.all(8.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Color.fromARGB(255, 121, 209, 124), width: 0.0),
+                ),
+                hintText: enterSubject,
+              ),
+            ),
+            SizedBox(height: 10,),
+            TextField(
+              controller: _message,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.search,
+              maxLines: 20,
+              decoration: InputDecoration(
+                hoverColor: Colors.white,
+                contentPadding: EdgeInsets.all(8.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Color.fromARGB(255, 121, 209, 124), width: 0.0),
+                ),
+                hintText: enterMessage,
+              ),
+            ),
+            SizedBox(height: 10,),
+            SizedBox(
+              width: 100,
+              height: 42,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (_subject.text.isNotEmpty && _message.text.isNotEmpty) {
+                    buildShowDialog(context);
+                    await submitContactMessage();
+                    Navigator.pop(context);
+                  } else if (_subject.text.isEmpty) {
+                    _showToast(context, "Enter Subject");
+                  } else if (_message.text.isEmpty) {
+                    _showToast(context, "Enter Message");
+                  } else {
+                    _showToast(context, "Enter Subject And Message");
+                  }
+                }, 
+                child: const Text("Submit"),
+              ),
+            )
+          ]
+        )
+      ),
     );
   }
 

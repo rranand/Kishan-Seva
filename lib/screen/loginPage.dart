@@ -140,22 +140,30 @@ class _LoginState extends State<Login> {
                       try {
                         buildShowDialog(context);
                         UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: _emailId.text, password: _password.text);
-                        await _prefs.setString("user_id", userCredential.user!.uid);
+                        var user = FirebaseAuth.instance.currentUser!;
+                        if (user.emailVerified) {
+                          await _prefs.setString("user_id", userCredential.user!.uid);
                         
-                        Navigator.pop(context);
-                        Navigator.pushAndRemoveUntil(
-                          context, 
-                          MaterialPageRoute(builder: (context) => Dashboard(userId: userCredential.user!.uid,)), 
-                          (route) => false
-                        );
+                          Navigator.pop(context);
+                          Navigator.pushAndRemoveUntil(
+                            context, 
+                            MaterialPageRoute(builder: (context) => Dashboard(userId: userCredential.user!.uid,)), 
+                            (route) => false
+                          );
+                        } else {
+                          await user.sendEmailVerification();
+                          Navigator.pop(context);
+                          _showToast(context, "Verify Your Email");
+                        }
                       } on FirebaseAuthException catch (e) {
                         if (e.code == 'user-not-found') {
+                          Navigator.pop(context);
                           _showToast(context, "Email ID Not Found");
                         } else if (e.code == 'wrong-password') {
+                          Navigator.pop(context);
                           _showToast(context, 'Wrong password');
                         }
                       }
-                      Navigator.pop(context);
                     }
                   },
                 ),
